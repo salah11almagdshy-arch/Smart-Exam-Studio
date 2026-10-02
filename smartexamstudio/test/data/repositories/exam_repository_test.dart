@@ -9,7 +9,7 @@ void main() {
   late ExamRepository repository;
 
   setUp(() {
-    database = AppDatabase.test(NativeDatabase.memory());
+    database = AppDatabase(NativeDatabase.memory());
     repository = ExamRepository(database);
   });
 
