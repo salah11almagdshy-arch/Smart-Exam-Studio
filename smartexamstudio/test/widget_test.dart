@@ -1,30 +1,37 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:smartexamstudio/main.dart';
+import 'package:smartexamstudio/data/database/app_database.dart';
+import 'package:smartexamstudio/data/repositories/exam_repository.dart';
+import 'package:smartexamstudio/features/exams/presentation/exams_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  late AppDatabase database;
+  late ExamRepository repository;
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  setUp(() {
+    database = AppDatabase(
+      DatabaseConnection(
+        NativeDatabase.memory(),
+        closeStreamsSynchronously: true,
+      ),
+    );
+    repository = ExamRepository(database);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  tearDown(() async {
+    await database.close();
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('تعرض شاشة الامتحانات دون أخطاء', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(home: ExamsScreen(repository: repository)),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ExamsScreen), findsOneWidget);
+    expect(tester.takeException() == null, isTrue);
   });
 }
