@@ -538,29 +538,32 @@ class _QuestionContentEditorScreenState
   }
 
   Future<bool> _confirmLeave() async {
-    if (!_dirty) return true;
+if (!_dirty) return true;
 
-    final leave = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تغييرات غير محفوظة'),
-        content: const Text(
-          'هل تريد الخروج دون حفظ التغييرات؟',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('البقاء'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('الخروج'),
-          ),
-        ],
+final leave = await showDialog<bool>(
+  context: context,
+  builder: (dialogContext) => AlertDialog(
+    title: const Text('تغييرات غير محفوظة'),
+    content: const Text(
+      'هل تريد الخروج دون حفظ التغييرات؟',
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(dialogContext, false),
+        child: const Text('البقاء'),
       ),
-    );
+      FilledButton(
+        onPressed: () => Navigator.pop(dialogContext, true),
+        child: const Text('الخروج'),
+      ),
+    ],
+  ),
+);
 
-    return leave ?? false;
+if (!mounted) return false;
+
+return leave ?? false;
+
   }
 
   @override
