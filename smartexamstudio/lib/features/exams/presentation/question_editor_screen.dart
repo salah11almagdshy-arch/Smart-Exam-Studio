@@ -579,14 +579,16 @@ return leave ?? false;
     return PopScope(
       canPop: !_dirty,
       onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
+if (didPop) return;
 
-        final shouldLeave = await _confirmLeave();
+    final shouldLeave = await _confirmLeave();
 
-        if (shouldLeave && mounted) {
-          Navigator.of(context).pop();
-        }
-      },
+    if (!context.mounted) return;
+
+    if (shouldLeave) {
+      Navigator.of(context).pop();
+    }
+  },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('تحرير السؤال'),
