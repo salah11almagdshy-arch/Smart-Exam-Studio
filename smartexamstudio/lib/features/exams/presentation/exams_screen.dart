@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../data/database/app_database.dart';
 import '../../../data/repositories/exam_repository.dart';
+import 'question_editor_screen.dart';
 
 class ExamsScreen extends StatefulWidget {
   const ExamsScreen({super.key, required this.repository});
@@ -22,12 +23,24 @@ class _ExamsScreenState extends State<ExamsScreen> {
     super.dispose();
   }
 
-  void _showMessage(String message) {
+ void _showMessage(String message) {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _openExam(Exam exam) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => QuestionEditorScreen(
+          examId: exam.id,
+          examTitle: exam.title,
+          repository: widget.repository,
+        ),
+      ),
+    );
   }
 
   Future<void> _showCreateExamDialog() async {
@@ -405,9 +418,10 @@ class _ExamsScreenState extends State<ExamsScreen> {
                       message: 'جرّب البحث بعنوان أو مادة مختلفة.',
                     )
                   else
-                    ...filteredExams.map(
+                   ...filteredExams.map(
                       (exam) => _ExamCard(
                         exam: exam,
+                        onOpen: () => _openExam(exam),
                         onDelete: () => _confirmDelete(exam),
                       ),
                     ),
@@ -422,9 +436,14 @@ class _ExamsScreenState extends State<ExamsScreen> {
 }
 
 class _ExamCard extends StatelessWidget {
-  const _ExamCard({required this.exam, required this.onDelete});
+  const _ExamCard({
+    required this.exam,
+    required this.onOpen,
+    required this.onDelete,
+  });
 
   final Exam exam;
+  final VoidCallback onOpen;
   final VoidCallback onDelete;
 
   @override
@@ -435,76 +454,82 @@ class _ExamCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: colors.primaryContainer,
-                borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onOpen,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  Icons.description_outlined,
+                  color: colors.onPrimaryContainer,
+                ),
               ),
-              child: Icon(
-                Icons.description_outlined,
-                color: colors.onPrimaryContainer,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    exam.title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (exam.subject != null &&
-                      exam.subject!.trim().isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text('المادة: ${exam.subject}'),
-                  ],
-                  if (exam.description != null &&
-                      exam.description!.trim().isNotEmpty) ...[
-                    const SizedBox(height: 6),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      exam.description!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colors.onSurfaceVariant,
+                      exam.title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ],
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 6,
-                    children: [
-                      _MetadataItem(
-                        icon: Icons.grade_outlined,
-                        text: '${exam.totalMarks} درجة',
-                      ),
-                      if (exam.durationMinutes != null)
-                        _MetadataItem(
-                          icon: Icons.timer_outlined,
-                          text: '${exam.durationMinutes} دقيقة',
-                        ),
+                    if (exam.subject != null &&
+                        exam.subject!.trim().isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text('المادة: ${exam.subject}'),
                     ],
-                  ),
-                ],
+                    if (exam.description != null &&
+                        exam.description!.trim().isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        exam.description!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 6,
+                      children: [
+                        _MetadataItem(
+                          icon: Icons.grade_outlined,
+                          text: '${exam.totalMarks} درجة',
+                        ),
+                       if (exam.durationMinutes != null)
+                          _MetadataItem(
+                            icon: Icons.timer_outlined,
+                            text: '${exam.durationMinutes} دقيقة',
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            IconButton(
-              tooltip: 'حذف الامتحان',
-              onPressed: onDelete,
-              icon: Icon(Icons.delete_outline, color: colors.error),
-            ),
-          ],
+              IconButton(
+                tooltip: 'حذف الامتحان',
+                onPressed: onDelete,
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: colors.error,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
